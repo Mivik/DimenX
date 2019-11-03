@@ -1,0 +1,127 @@
+// <intellic> -*- C++ -*-
+// A simple implementation in C++ of neural network
+// Created By Mivik, 2019.10
+
+#ifndef __DIMENX_INTELLIC_H_
+#define __DIMENX_INTELLIC_H_
+
+#include <dimenx/matrix>
+#include <cfloat>
+
+namespace dimenx {
+
+
+/*Activization Functions*/
+typedef double (*DF)(double);
+typedef DF *DDF;
+static DF AZ_NONE[2]={[](double x){return x;},[](double x){return 1.0;}};
+static DF AZ_RELU[2]={[](double x){return x>=0?x:0;},[](double x){return x>=0?1.0:0.0;}};
+static DF AZ_TANH[2]={[](double x){return tanh(x);},[](double x){x=tanh(x);return 1-x*x;}};
+static DF AZ_SIGM[2]={[](double x){return 1.0/(exp(-x)+1);},[](double x){x=exp(-x);double t=x+1;return x/t/t;}};
+static DF AZ_SOFTP[2]={[](double x){return log(exp(x)+1);},[](double x){return 1.0/(exp(-x)+1);}};
+static const double LRELU_LEAKAGE=0.01;
+static DF AZ_LRELU[2]={[](double x){return x>=0?x:(x*LRELU_LEAKAGE);},[](double x){return x>=0?1:LRELU_LEAKAGE;}};
+
+
+template<int LSIZE>
+struct Network {
+#define OUTSIZE (S[LSIZE-1])
+	using MAT = Matrix<double>;
+	using FuncType = typename MAT::FuncType;
+	int S[LSIZE];
+	int BS,IS;
+	FuncType F[LSIZE][2];
+	MAT W[LSIZE];
+	MAT O[LSIZE],Q[LSIZE],E[LSIZE];
+	MAT DD[LSIZE];
+	Network() {}
+	Network(int* sz, FuncType** fs) {init(sz,fs);}
+	~Network() {for(int i=0;i<LSIZE;i++){W[i].recycle();O[i].recycle();Q[i].recycle();}}
+	void init(int is, int* sz, FuncType** fs) {
+		IS=is;
+		S[0]=sz[0];
+		F[0][0]=fs[0][0];
+		F[0][1]=fs[0][1];
+		W[0].resize(IS,sz[0]);
+		DD[0].resize(IS,sz[0]);
+		for (int i=1;i<LSIZE;i++) {
+			S[i]=sz[i];
+			F[i][0]=fs[i][0];
+			F[i][1]=fs[i][1];
+			W[i].resize(sz[i-1],sz[i]);
+			DD[i].resize(sz[i-1],sz[i]);
+		}
+	}
+	void setBatchSize(int bs) {
+		if (bs==this->BS) return;
+		this->BS=bs;
+		O[0].resize(BS,S[0]);
+		Q[0].resize(BS,S[0]);
+		for (int i=1;i<LSIZE;i++) {
+			O[i].resize(BS,S[i]);
+			Q[i].resize(BS,S[i]);
+		}
+	}
+	void initWeights(FuncType func) {
+		for (int i=0;i<LSIZE;i++) W[i]&=func;
+	}
+	MAT& calc(const MAT& input) {
+		assert(input.N==BS&&input.M==IS);
+		input.mult(W[0],O[0]);
+		O[0].apply(F[0][0],Q[0]);
+		for (int i=1;i<LSIZE;i++) {
+			Q[i-1].mult(W[i],O[i]);
+			O[i].apply(F[i][0],Q[i]);
+		}
+		return Q[LSIZE-1];
+	}
+	inline static double SQUARE(double x) {return x*x;}
+	double diff(const MAT& a, const MAT& b) {
+		MAT tmp=a;
+		tmp-=b;
+		tmp&=SQUARE;
+		return tmp.sum();
+	}
+	double cost(const MAT& a, const MAT& b) {return diff(calc(a),b);}
+	MAT* const calcError(const MAT& input, const MAT& moutput, const MAT& output) {
+		static MAT delta;
+		delta=moutput;delta-=output;
+		delta*=Q[LSIZE-1]&=F[LSIZE-1][1];
+		for (int i=LSIZE-1;i>0;i--) {
+			E[i]=(~O[i-1])*delta;
+			delta=delta*(~W[i]);
+			delta*=Q[i-1]&=F[i-1][1];
+		}
+		E[0]=(~input)*delta;
+		return E;
+	}
+	inline static double REFINE(double x) {return isnan(x)?0:(isinf(x)?(x>0?DBL_MAX:DBL_MIN):x);}
+	void refine() {for(int i=0;i<LSIZE;i++)W[i]&=REFINE;}
+	void singleGradientDescent(double rate, MAT* err) {for(int i=0;i<LSIZE;i++)W[i]-=err[i]*=rate;}
+	void momentumGradientDescent(double mov, double rate, MAT* err) {for(int i=0;i<LSIZE;i++){DD[i]*=mov;DD[i]+=err[i]*=(1-mov);err[i]=DD[i];W[i]-=err[i]*=rate;}}
+#undef OUTSIZE
+};
+
+template <typename V>
+int maxIndexOf(const V* src, int len) {
+	const V* ret = src;
+	for (int i=1;i<len;i++) if (src[i]>*ret) ret=src+i;
+	return ret-src;
+}
+
+template <typename V>
+int minIndexOf(const V* src, int len) {
+	const V* ret = src;
+	for (int i=1;i<len;i++) if (src[i]<*ret) ret=src+i;
+	return ret-src;
+}
+
+template <typename V>
+const V& maxOf(const V* src, int len) { return src[maxIndexOf(src,len)]; }
+
+template <typename V>
+const V& minOf(const V* src, int len) { return src[minIndexOf(src,len)]; }
+
+};
+
+#endif

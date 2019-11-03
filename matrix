@@ -1,0 +1,44 @@
+// <matrix> -*- C++ -*-
+// A simple implementation of matrix
+// Created By Mivik, 2019.10
+
+#ifndef __DIMENX_MATRIX_H_
+#define __DIMENX_MATRIX_H_
+
+#include <iostream>
+#include <cassert>
+using namespace std;
+
+namespace dimenx {
+
+template<typename V>
+struct Matrix {
+	using MAT = Matrix<V>;
+	using FuncType = V(*)(V);
+	int N,M;
+	V **a;
+	Matrix() {a=0;}
+	Matrix(int N, int M) {resize(N,M);}
+	Matrix(const Matrix& t) {forceSet(t);}
+	Matrix& operator=(const Matrix& t) {assert(t.a);int i,j;if(N==t.N&&M==t.M&&a){for(i=0;i<N;i++)for(j=0;j<M;j++)a[i][j]=t.a[i][j];}else this->~MAT(),forceSet(t);return *this;}
+	void forceSet(const MAT& t) {assert(t.a);N=t.N;M=t.M;int i,j;a=new V*[N];*a=new V[N*M];for(i=0;i<N;i++)for(a[i]=*a+(i*M),j=0;j<M;j++)a[i][j]=t.a[i][j];}
+	void resize(int N, int M) {assert(N>0&&M>0);this->~MAT();this->N=N;this->M=M;int i,j;a=new V*[N];*a=new V[N*M];for(i=1;i<N;i++)a[i]=*a+(i*M);}
+	void recycle() {if(!a)return;delete[] *a;delete[]a;a=0;}
+	void clear() {int i,j;for(i=0;i<N;i++)for(j=0;j<M;j++)a[i][j]=0;}
+	MAT& operator+=(const MAT& t) {assert(N==t.N&&M==t.M);int i,j;for(i=0;i<N;i++)for(j=0;j<M;j++)a[i][j]+=t.a[i][j];return *this;}
+	MAT operator+(const MAT& t) const {Matrix ret=*this;return ret+=t;}
+	MAT& operator-=(const MAT& t) {assert(N==t.N&&M==t.M);int i,j;for(i=0;i<N;i++)for(j=0;j<M;j++)a[i][j]-=t.a[i][j];return *this;}
+	MAT operator-(const MAT& t) const {Matrix ret=*this;return ret-=t;}
+	void apply(const FuncType& f, MAT& t) {int i,j;for(i=0;i<N;i++)for(j=0;j<M;j++)t.a[i][j]=f(a[i][j]);}
+	MAT& operator&=(const FuncType& f) {int i,j;for(i=0;i<N;i++)for(j=0;j<M;j++)a[i][j]=f(a[i][j]);return *this;}
+	void mult(const MAT& b, MAT& c) const {assert(b.N==M&&c.N==N&&c.M==b.M);int i,j,k;V *ao,*bo=*b.a,*co,r;for(k=0;k<M;k++,bo+=b.M)for(ao=*a,co=*c.a,i=0;i<N;i++,ao+=M,co+=c.M){r=ao[k];for(j=0;j<b.M;j++){if(!k)co[j]=r*bo[j];else co[j]+=r*bo[j];}}}
+	MAT operator*(const MAT& t) const {Matrix ret(N,t.M);mult(t,ret);return ret;}
+	MAT& operator*=(const V& t) {int i,j;for(i=0;i<N;i++)for(j=0;j<M;j++)a[i][j]*=t;return *this;}
+	MAT& operator*=(const MAT& t) {assert(N==t.N&&M==t.M);int i,j;for(i=0;i<N;i++)for(j=0;j<M;j++)a[i][j]*=t.a[i][j];return *this;}
+	MAT operator~() const {Matrix ret(M,N);int i,j;for(i=0;i<N;i++)for(j=0;j<M;j++)ret.a[j][i]=a[i][j];return ret;}
+	template<typename D=V> D sum() const {D ret=0;int i,j;for(i=0;i<N;i++)for(j=0;j<M;j++)ret+=a[i][j];return ret;}
+	friend ostream& operator<<(ostream& out, const Matrix<V>& t) {out.put('[');int i,j;for(i=0;i<t.N;i++){for(j=0,out.put('[');j<t.M;j++){out<<t.a[i][j];if(j!=t.M-1)out.put(',');}out.put(']');if(i!=t.N-1)out<<",\n";}out.put(']');return out;}
+};
+
+};
+#endif

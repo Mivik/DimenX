@@ -1,0 +1,111 @@
+// <mcli> -*- C++ -*-
+// A tiny header for program to create powerful CLI
+// Created By Mivik, 2019.10
+
+#ifndef __DIMENX_MCLI_H_
+#define __DIMENX_MCLI_H_
+
+#include <cstdio>
+
+#ifdef _WIN32
+#include <windows.h>
+#elif defined(__linux__)
+#include <sys/types.h>
+#include <sys/ioctl.h>
+#include <unistd.h>
+#endif
+
+namespace dimenx {
+// ==================== Common Difinition ===================
+
+enum CColor { BLUE,GREEN,RED,BLACK,WHITE,PURPLE,NONE,YELLOW };
+struct Size { int h,w; };
+
+CColor _C_BACKGROUND,_C_FOREGROUND;
+inline void initMCLI();
+inline void moveCursor(int x, int y); // aka. (row & column)
+inline void setColor(CColor bg, CColor fore);
+inline void clearColor();
+inline void clearScreen();
+inline CColor getBackgroundColor() {return _C_BACKGROUND;}
+inline CColor getForegroundColor() {return _C_FOREGROUND;}
+inline Size getWindowSize();
+inline void setTitle(const char *x);
+inline void hideCursor();
+inline void showCursor();
+
+inline void flushBuffer() {fflush(stdout);}
+
+inline void clearScreen() {
+	CColor _bg=_C_BACKGROUND,_fo=_C_FOREGROUND;
+	setColor(NONE,NONE);
+	Size s=getWindowSize();
+	moveCursor(0,0);
+	int i,j;
+	for(i=0;i<s.h;i++)for(j=0;j<s.w;j++)putchar(' ');
+	setColor(_bg,_fo);
+}
+
+#ifdef _WIN32
+
+// =============== Implementation for Windows ===============
+
+HANDLE _HIN,_HOUT;
+inline void initMCLI() {
+	_C_BACKGROUND = _C_FOREGROUND = NONE;
+	_HIN	=	GetStdHandle(STD_INPUT_HANDLE);
+	_HOUT	=	GetStdHandle(STD_OUTPUT_HANDLE);
+}
+inline void moveCursor(int x, int y) {SetConsoleCursorPosition(_HOUT,(COORD){y,x});}
+inline void setColor(CColor bg, CColor fore) {
+	static const int BG[]={16,32,64,0,240,80,0,96};
+	static const int FO[]={1,2,4,15,5,0,6};
+	SetConsoleTextAttribute(_HOUT,BG[_C_BACKGROUND=bg],FO[_C_FOREGROUND=fore]);
+}
+inline Size getWindowSize() {
+	CONSOLE_SCREEN_BUFFER_INFO info;
+	GetConsoleScreenBufferInfo(_HOUT,&info);
+	SMALL_RECT& r=info.srWindow;
+	return (Size){r.Bottom-r.Top,r.Right-r.Left};
+}
+inline void clearColor() {setColor(BLACK,WHITE);}
+inline void setTitle(const char *x) {SetConsoleTitle(x);}
+inline void hideCursor() {
+	CONSOLE_CURSOR_INFO info;
+	GetConsoleCursorInfo(_HOUT,&info);
+	info.bVisible = false;
+	SetConsoleCursorInfo(_HOUT,&info);
+}
+inline void showCursor() {
+	CONSOLE_CURSOR_INFO info;
+	GetConsoleCursorInfo(_HOUT,&info);
+	info.bVisible = true;
+	SetConsoleCursorInfo(_HOUT,&info);
+}
+#elif defined(__linux__)
+
+// ================ Implementation for Linux ================
+
+inline void initMCLI() {_C_BACKGROUND = _C_FOREGROUND = NONE;}
+inline void moveCursor(int x, int y) {printf("\033[%d;%dH",x+1,y+1);flushBuffer();}
+inline void setColor(CColor bg, CColor fore) {
+	static const int BG[]={44,42,41,40,47,45,0,43};
+	static const int FO[]={34,32,31,30,37,35,0,33};
+	printf("\033[%d;%dm",BG[_C_BACKGROUND=bg],FO[_C_FOREGROUND=fore]);
+	flushBuffer();
+}
+inline void clearColor() {printf("\033[0m");flushBuffer();}
+inline Size getWindowSize() {
+	winsize size;
+	ioctl(STDIN_FILENO,TIOCGWINSZ,(char*)&size);
+	return (Size){size.ws_row,size.ws_col};
+}
+inline void setTitle(const char *x) {printf("\033]2;%s\007",x);flushBuffer();}
+inline void hideCursor() {printf("\033[?25l");flushBuffer();}
+inline void showCursor() {printf("\033[?25h");flushBuffer();}
+#else
+
+#error Unsupported Operation System
+#endif
+};
+#endif
