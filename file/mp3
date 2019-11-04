@@ -1,6 +1,6 @@
-// <queue> -*- C++ -*-
+// <mp3> -*- C++ -*-
 /*
-	queue - A pretty simple implementation to queue
+	mp3 - A collection of typedefs and utils for MP3 filetype
 	Copyright (C) 2019 Mivik
 
 	This file is part of the DimenX library. This library is free
@@ -18,39 +18,19 @@
 	along with this library.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef __DIMENX_QUEUE_H_
-#define __DIMENX_QUEUE_H
+#ifndef __DIMENX_FILE_MP3_H_
+#define __DIMENX_FILE_MP3_H_
 
 namespace dimenx {
+namespace filetype {
+namespace MP3 {
 
-template <typename V, int S>
-class Queue {
-private:
-	V a[S];
-	int head,tail,s;
-public:
-	Queue() {clear();}
-	void clear() {head=tail=s=0;}
-	bool empty() {return !s;}
-	int size() {return s;}
-	void insert(V v) {a[tail]=v;if(++tail==S)tail=0;++s;}
-	V* begin() {return a+head;}
-	V top() {return a[head];}
-	V pop() {V &ret=a[head];if(++head==S)head=0;--s;return ret;}
-	void sample(int cnt, V** dst) {
-		int i,j,k;
-		k=head;
-		for (i=0;i<cnt;i++) {
-			dst[i]=a+k;
-			if (++k==S) k=0;
-		}
-		for (;i<s;i++) {
-			if ((j=(rand()%(i+1)))<cnt) dst[j]=a+k;
-			if (++k==S) k=0;
-		}
-	}
+struct Header {
+	
 };
 
+};
+};
 };
 
 #endif
