@@ -88,6 +88,7 @@ private:
 		update(PADDING,padLen);
 		byte *bits=(byte*)&oC;
 		update(bits,8);
+		memcpy(D,S,sizeof(S));
 		memcpy(S,oldS,sizeof(S));
 		C=oC;
 	}
@@ -199,8 +200,7 @@ public:
 		II (d, a, b, c, x[11], S42, 0xbd3af235); /* 62 */
 		II (c, d, a, b, x[ 2], S43, 0x2ad7d2bb); /* 63 */
 		II (b, c, d, a, x[ 9], S44, 0xeb86d391); /* 64 */
-		cout<<a<<' '<<b<<' '<<c<<' '<<d<<endl;
-
+		
 		S[0]+=a;
 		S[1]+=b;
 		S[2]+=c;

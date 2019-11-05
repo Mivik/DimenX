@@ -28,16 +28,16 @@ typedef unsigned char byte;
 typedef unsigned int uint32;
 typedef unsigned long long uint64;
 
-inline const char *Bytes2Hex(const byte *input, size_t len, bool upper=false, char *output=NULL) {
+inline const char *Bytes2Hex(const byte *input, size_t len, char *output=NULL, bool upper=false) {
 #define b2h(c) (((c)>=10)?((c)-10+(upper?'A':'a')):(c+'0'))
 	char *ret=output;
 	if (!ret) ret=(char*)malloc(len<<1);
 	byte ww;
 	for (size_t i=0,j=0;i<len;++i,j+=2) {
-		ww=input[j]&15;
-		ret[j]=b2h(ww);
-		ww=(input[j]>>4)&15;
+		ww=(input[i]>>4)&15;
 		ret[j|1]=b2h(ww);
+		ww=input[i]&15;
+		ret[j]=b2h(ww);
 	}
 	return ret;
 #undef b2h
