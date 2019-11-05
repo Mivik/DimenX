@@ -1,6 +1,6 @@
-// <file/mp3> -*- C++ -*-
+// <crypto/common> -*- C++ -*-
 /*
-	file/mp3 - A collection of typedefs and utils for MP3 filetype
+	crypto - Common utils for crypto
 	Copyright (C) 2019 Mivik
 
 	This file is part of the DimenX library. This library is free
@@ -18,18 +18,31 @@
 	along with this library.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef __DIMENX_FILE_MP3_H_
-#define __DIMENX_FILE_MP3_H_
+#ifndef __DIMENX_CRYPTO_COMMON_H_
+#define __DIMENX_CRYPTO_COMMON_H_
 
 namespace dimenx {
-namespace filetype {
-namespace MP3 {
+namespace crypto {
 
-struct Header {
-	
-};
+typedef unsigned char byte;
+typedef unsigned int uint32;
+typedef unsigned long long uint64;
 
-};
+inline const char *Bytes2Hex(const byte *input, size_t len, bool upper=false, char *output=NULL) {
+#define b2h(c) (((c)>=10)?((c)-10+(upper?'A':'a')):(c+'0'))
+	char *ret=output;
+	if (!ret) ret=(char*)malloc(len<<1);
+	byte ww;
+	for (size_t i=0,j=0;i<len;++i,j+=2) {
+		ww=input[j]&15;
+		ret[j]=b2h(ww);
+		ww=(input[j]>>4)&15;
+		ret[j|1]=b2h(ww);
+	}
+	return ret;
+#undef b2h
+}
+
 };
 };
 
