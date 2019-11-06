@@ -49,28 +49,21 @@ inline Size getWindowSize();
 inline void setTitle(const char *x);
 inline void hideCursor();
 inline void showCursor();
+inline void echo();
 
 inline void flushBuffer() {fflush(stdout);}
-
-inline void clearScreen() {
-	CColor _bg=_C_BACKGROUND,_fo=_C_FOREGROUND;
-	setColor(NONE,NONE);
-	Size s=getWindowSize();
-	moveCursor(0,0);
-	int i,j;
-	for(i=0;i<s.h;i++)for(j=0;j<s.w;j++)putchar(' ');
-	setColor(_bg,_fo);
-}
 
 #ifdef _WIN32
 
 // =============== Implementation for Windows ===============
 
 HANDLE _HIN,_HOUT;
+bool _ECHO;
 inline void initMCLI() {
 	_C_BACKGROUND = _C_FOREGROUND = NONE;
-	_HIN	=	GetStdHandle(STD_INPUT_HANDLE);
-	_HOUT	=	GetStdHandle(STD_OUTPUT_HANDLE);
+	_HIN	= GetStdHandle(STD_INPUT_HANDLE);
+	_HOUT	= GetStdHandle(STD_OUTPUT_HANDLE);
+	_ECHO	= 1;
 }
 inline void moveCursor(int x, int y) {SetConsoleCursorPosition(_HOUT,(COORD){y,x});}
 inline void setColor(CColor bg, CColor fore) {
@@ -98,6 +91,17 @@ inline void showCursor() {
 	info.bVisible = true;
 	SetConsoleCursorInfo(_HOUT,&info);
 }
+inline void clearScreen() {
+	CColor _bg=_C_BACKGROUND,_fo=_C_FOREGROUND;
+	setColor(NONE,NONE);
+	Size s=getWindowSize();
+	moveCursor(0,0);
+	int i,j;
+	for(i=0;i<s.h;i++)for(j=0;j<s.w;j++)putchar(' ');
+	setColor(_bg,_fo);
+}
+inline void echo(bool flag) {_ECHO=flag};
+inline int getKey() {return _ECHO?getchar():getch();}
 #elif defined(__linux__)
 
 // ================ Implementation for Linux ================
@@ -119,6 +123,12 @@ inline Size getWindowSize() {
 inline void setTitle(const char *x) {printf("\033]2;%s\007",x);flushBuffer();}
 inline void hideCursor() {printf("\033[?25l");flushBuffer();}
 inline void showCursor() {printf("\033[?25h");flushBuffer();}
+inline void clearScreen() {printf("\033c");flushBuffer();}
+inline void echo(bool flag) {
+	if (flag) system("stty echo");
+	else system("stty -echo");
+}
+inline int getKey() {return getchar();}
 #else
 
 #error Unsupported Operation System

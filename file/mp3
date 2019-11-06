@@ -26,7 +26,11 @@ namespace filetype {
 namespace MP3 {
 
 struct Header {
-	
+	char magic[3];
+	char version;
+	char reversion;
+	char flag;
+	char size[4];
 };
 
 };

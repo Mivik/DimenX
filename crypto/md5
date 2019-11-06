@@ -94,6 +94,8 @@ private:
 	}
 public:
 	MD5() {reset();}
+	inline const char *toHexString(char *output=NULL, bool upper=false) { return Bytes2Hex(digest(),16,output,upper); }
+	inline const char *toHexString16(char *output=NULL, bool upper=false) { return Bytes2Hex(digest()+4,8,output,upper); }
 	inline void reset() {
 		F=0;
 		C=0;
@@ -118,12 +120,12 @@ public:
 		memcpy(B+off,input+i,len-i);
 	}
 	inline void update(const char *inputStr) { update((const byte*)inputStr,strlen(inputStr)); }
-	inline const byte *digest() {
+	inline const char *digest() {
 		if (!F) {
 			doFinal();
 			F=1;
 		}
-		return D;
+		return (const char*)D;
 	}
 	inline void transform(const byte input[64]) {
 		uint32 a=S[0],b=S[1],c=S[2],d=S[3];

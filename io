@@ -81,6 +81,7 @@ private:
 	FILE *file;
 public:
 	FileStream() {}
+	FileStream(FILE *file):file(file) {}
 	FileStream(const char *path, const char *mode) { file=fopen(path,mode); }
 	inline void reopen(const char *path, const char *mode) { freopen(path,mode,file); }
 	inline void seek(const long &offset, const int &origin) { fseek(file,offset,origin); }
@@ -104,6 +105,7 @@ public:
 	inline int error() { return ferror(file); }
 	inline void clearError() { ::clearerr(file); }
 	inline void rewind() { ::rewind(file); }
+	inline FILE *getFile() { return file; }
 };
 
 struct File {

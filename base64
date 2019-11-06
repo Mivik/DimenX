@@ -1,0 +1,59 @@
+// <base64> -*- C++ -*-
+/*
+	base64 - base implementation to Base64 encoding
+	Copyright (C) 2019 Mivik
+
+	This file is part of the DimenX library. This library is free
+	software: you can redistribute it and/or modify it under the terms
+	of the GNU General Public License as published by the Free Software
+	Foundation, either version 3 of the License, or (at your option)
+	any later version.
+
+	This library is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with this library.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+#ifndef __DIMENX_BASE64_H_
+#define __DIMENX_BASE64_H_
+
+namespace dimenx {
+namespace Base64 {
+
+inline const char *encode(const char *cinput, size_t len, char *output=NULL) {
+	static const char *TABLE="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+	const unsigned char *input=(const unsigned char*)cinput;
+	if (!output) output=new char[(len+2)/3*4];
+	unsigned int chunk;
+	int i=0,pad;
+	char *cur=output;
+	while (i<len) {
+		chunk=((unsigned int)input[i++])<<16;
+		pad=0;
+		if (i==len) pad=2;
+		else {
+			chunk|=((unsigned int)input[i++])<<8;
+			if (i==len) pad=1;
+			else chunk|=((unsigned int)input[i++]);
+		}
+		*cur++=TABLE[(chunk>>18)&0x3F];
+		*cur++=TABLE[(chunk>>12)&0x3F];
+		switch (pad) {
+			case 0:*cur++=TABLE[(chunk>>6)&0x3F];*cur++=TABLE[(chunk)&0x3F];break;
+			case 1:*cur++=TABLE[(chunk>>6)&0x3F];*cur++='=';break;
+			case 2:*cur++='=';*cur++='=';break;
+		}
+	}
+	*cur='\0';
+	return output;
+}
+inline const char *encode(const char *cinput, char *output=NULL) { return encode(cinput,strlen(cinput),output); }
+
+};
+};
+
+#endif
