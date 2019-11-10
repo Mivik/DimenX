@@ -27,6 +27,8 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <assert.h>
+
+#include <string>
 #include <vector>
 
 #include <sys/stat.h>
@@ -46,7 +48,7 @@ private:
 public:
 	FileStat() {}
 	FileStat(const char *path) {load(path);}
-	inline bool load(const char *path) { return stat(path,&info)==0; }
+	inline bool load(const char *path) { return lstat(path,&info)==0; }
 	inline bool isFile() const { return S_ISREG(info.st_mode); }
 	inline bool isDirectory() const { return S_ISDIR(info.st_mode); }
 	inline bool isCharacterDevice() const { return S_ISCHR(info.st_mode); }
@@ -54,6 +56,7 @@ public:
 	inline bool isLink() const { return S_ISLNK(info.st_mode); }
 	inline bool isSocketFile() const { return S_ISSOCK(info.st_mode); }
 	inline bool isFIFO() const { return S_ISFIFO(info.st_mode); }
+	inline mode_t getMode() const { return info.st_mode; }
 	inline time_t getLastModifyTime() const { return info.st_mtime; }
 	inline time_t getLastAccessTime() const { return info.st_atime; }
 	inline time_t getLastStatusChangeTime() const { return info.st_ctime; }
@@ -121,8 +124,7 @@ private:
 		return 1;
 	}
 	inline void updatePath() {
-		int len = path.length();
-		if ((*(path.end()-1))==PATH_SEPARATOR) this->path.erase(this->path.end()-1);
+		if (path.length()>1&&(*(path.end()-1))==PATH_SEPARATOR) this->path.erase(this->path.end()-1);
 		if (info) info=0;
 	}
 public:
@@ -132,11 +134,11 @@ public:
 	File(File &parent, const char *name) {
 		assert(parent.isDirectory());
 		path=parent.path;
-		path+=PATH_SEPARATOR;
+		if ((*(parent.path.end()-1))!=PATH_SEPARATOR) path+=PATH_SEPARATOR;
 		path+=name;
 		updatePath();
 	}
-	~File() {if(info)delete info;}
+	// ~File() {if(info)delete info;}
 #define E if(!loadInfo())return 0
 	inline bool exists() const { return access(path.c_str(),F_OK)==0; }
 	inline bool canWrite() const { return access(path.c_str(),W_OK)==0; }
@@ -149,6 +151,7 @@ public:
 	inline bool isLink() { E;return info->isLink(); }
 	inline bool isSocketFile() { E;return info->isSocketFile(); }
 	inline bool isFIFO() { E;return info->isFIFO(); }
+	inline mode_t getMode() { E;return info->getMode(); }
 	inline time_t getLastModifyTime() { E;return info->getLastModifyTime(); }
 	inline time_t getLastAccessTime() { E;return info->getLastAccessTime(); }
 	inline time_t getLastStatusChangeTime() { E;return info->getLastStatusChangeTime(); }
@@ -202,16 +205,17 @@ public:
 		realpath(path.c_str(),ret);
 		return ret;
 	}
-	std::vector<File> listFiles() {
+	std::vector<File> listRawFiles() {
 		std::vector<File> ret;
 		if (!isDirectory()) return ret;
 		DIR *dir=opendir(path.c_str());
 		if (!dir) return ret;
 		dirent *ent;
 		while ((ent=readdir(dir))) ret.push_back(*(new File(*this,ent->d_name)));
+		closedir(dir);
 		return ret;
 	}
-	std::vector<File> listFiles(const FileFilter &filter) {
+	std::vector<File> listFiles(const FileFilter &filter=FileFilter()) {
 		std::vector<File> ret;
 		if (!isDirectory()) return ret;
 		DIR *dir=opendir(path.c_str());
@@ -220,6 +224,7 @@ public:
 		const char *we=path.c_str();
 		while ((ent=readdir(dir)))
 			if (filter(we,ent->d_name)) ret.push_back(*(new File(*this,ent->d_name)));
+		closedir(dir);
 		return ret;
 	}
 	std::string getName() {
