@@ -114,8 +114,8 @@ public:
 struct File {
 private:
 	std::string path;
-	FileStat *info;
-	inline bool loadInfo() {
+	mutable FileStat *info;
+	inline bool loadInfo() const {
 		if (!exists()) return 0;
 		if (!info) {
 			info=new FileStat();
@@ -131,7 +131,7 @@ public:
 	File() {}
 	File(const std::string &path) {setPath(path);}
 	File(const char *path) {setCPath(path);}
-	File(File &parent, const char *name) {
+	File(const File &parent, const char *name) {
 		assert(parent.isDirectory());
 		path=parent.path;
 		if ((*(parent.path.end()-1))!=PATH_SEPARATOR) path+=PATH_SEPARATOR;
@@ -144,28 +144,28 @@ public:
 	inline bool canWrite() const { return access(path.c_str(),W_OK)==0; }
 	inline bool canRead() const { return access(path.c_str(),R_OK)==0; }
 	inline bool canExecute() const { return access(path.c_str(),X_OK)==0; }
-	inline bool isFile() { E;return info->isFile(); }
-	inline bool isDirectory() { E;return info->isDirectory(); }
-	inline bool isCharacterDevice() { E;return info->isCharacterDevice(); }
-	inline bool isBlockDevice() { E;return info->isBlockDevice(); }
-	inline bool isLink() { E;return info->isLink(); }
-	inline bool isSocketFile() { E;return info->isSocketFile(); }
-	inline bool isFIFO() { E;return info->isFIFO(); }
-	inline mode_t getMode() { E;return info->getMode(); }
-	inline time_t getLastModifyTime() { E;return info->getLastModifyTime(); }
-	inline time_t getLastAccessTime() { E;return info->getLastAccessTime(); }
-	inline time_t getLastStatusChangeTime() { E;return info->getLastStatusChangeTime(); }
-	inline size_t getSize() { E;return info->getSize(); }
-	inline uid_t getOwnerUID() { E;return info->getOwnerUID(); }
-	inline gid_t getOwnerGID() { E;return info->getOwnerGID(); }
-	inline nlink_t getHardLinkCount() { E;return info->getHardLinkCount(); }
-	inline dev_t getDeviceID() { E;return info->getDeviceID(); }
-	inline dev_t getInodeID() { E;return info->getInodeID(); }
-	inline blksize_t getBlockSize() { E;return info->getBlockSize(); }
-	inline blkcnt_t getBlockCount() { E;return info->getBlockCount(); }
-	inline FileStat getFileStat() { E;return *info; }
-	inline std::string getPath() { return path; }
-	inline const char *getCPath() { return path.c_str(); }
+	inline bool isFile() const { E;return info->isFile(); }
+	inline bool isDirectory() const { E;return info->isDirectory(); }
+	inline bool isCharacterDevice() const { E;return info->isCharacterDevice(); }
+	inline bool isBlockDevice() const { E;return info->isBlockDevice(); }
+	inline bool isLink() const { E;return info->isLink(); }
+	inline bool isSocketFile() const { E;return info->isSocketFile(); }
+	inline bool isFIFO() const { E;return info->isFIFO(); }
+	inline mode_t getMode() const { E;return info->getMode(); }
+	inline time_t getLastModifyTime() const { E;return info->getLastModifyTime(); }
+	inline time_t getLastAccessTime() const { E;return info->getLastAccessTime(); }
+	inline time_t getLastStatusChangeTime() const { E;return info->getLastStatusChangeTime(); }
+	inline size_t getSize() const { E;return info->getSize(); }
+	inline uid_t getOwnerUID() const { E;return info->getOwnerUID(); }
+	inline gid_t getOwnerGID() const { E;return info->getOwnerGID(); }
+	inline nlink_t getHardLinkCount() const { E;return info->getHardLinkCount(); }
+	inline dev_t getDeviceID() const { E;return info->getDeviceID(); }
+	inline dev_t getInodeID() const { E;return info->getInodeID(); }
+	inline blksize_t getBlockSize() const { E;return info->getBlockSize(); }
+	inline blkcnt_t getBlockCount() const { E;return info->getBlockCount(); }
+	inline FileStat getFileStat() const { E;return *info; }
+	inline std::string getPath() const { return path; }
+	inline const char *getCPath() const { return path.c_str(); }
 	inline void setPath(const std::string &path) {
 		this->path=path;
 		updatePath();
@@ -174,16 +174,16 @@ public:
 		this->path=path;
 		updatePath();
 	}
-	inline File getLinkedFile() {
+	inline File getLinkedFile() const {
 		File ret(getLinkedCPath());
 		return ret;
 	}
-	inline std::string getLinkedPath() {
+	inline std::string getLinkedPath() const {
 		if (!isLink()) return "";
 		std::string ret=getLinkedCPath();
 		return ret;
 	}
-	inline const char *getLinkedCPath() {
+	inline const char *getLinkedCPath() const {
 		char ret[PATH_MAX];
 		if (!isLink()) {
 			ret[0]='\0';
@@ -192,20 +192,20 @@ public:
 		readlink(path.c_str(),ret,PATH_MAX);
 		return ret;
 	}
-	inline File getAbsoluteFile() {
+	inline File getAbsoluteFile() const {
 		File ret(getAbsoluteCPath());
 		return ret;
 	}
-	inline std::string getAbsolutePath() {
+	inline std::string getAbsolutePath() const {
 		std::string ret=getAbsoluteCPath();
 		return ret;
 	}
-	inline const char *getAbsoluteCPath() {
+	inline const char *getAbsoluteCPath() const {
 		char ret[PATH_MAX];
 		realpath(path.c_str(),ret);
 		return ret;
 	}
-	std::vector<File> listRawFiles() {
+	std::vector<File> listRawFiles() const {
 		std::vector<File> ret;
 		if (!isDirectory()) return ret;
 		DIR *dir=opendir(path.c_str());
@@ -215,7 +215,7 @@ public:
 		closedir(dir);
 		return ret;
 	}
-	std::vector<File> listFiles(const FileFilter &filter=FileFilter()) {
+	std::vector<File> listFiles(const FileFilter &filter=FileFilter()) const {
 		std::vector<File> ret;
 		if (!isDirectory()) return ret;
 		DIR *dir=opendir(path.c_str());
@@ -227,14 +227,14 @@ public:
 		closedir(dir);
 		return ret;
 	}
-	std::string getName() {
+	std::string getName() const {
 		int ind=path.length()-1;
 		while (ind>=0&&path[ind]!=PATH_SEPARATOR) --ind;
 		return path.substr(ind+1);
 	}
-	inline bool rename(const File &f) { return ::rename(path.c_str(),f.path.c_str())==0; }
-	inline FileStream open(const char *mode) { return FileStream(path.c_str(),mode); }
-	inline bool remove() {
+	inline bool rename(const File &f) const { return ::rename(path.c_str(),f.path.c_str())==0; }
+	inline FileStream open(const char *mode) const { return FileStream(path.c_str(),mode); }
+	inline bool remove() const {
 		if (isFile()) return unlink(path.c_str())==0;
 		else if (isDirectory()) return rmdir(path.c_str())==0;
 	}
