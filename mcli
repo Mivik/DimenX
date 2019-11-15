@@ -32,13 +32,14 @@
 #endif
 
 namespace dimenx {
+namespace mcli {
 // ==================== Common Difinition ===================
 
 enum CColor { BLUE,GREEN,RED,BLACK,WHITE,PURPLE,NONE,YELLOW };
 struct Size { int h,w; };
 
 CColor _C_BACKGROUND,_C_FOREGROUND;
-inline void initMCLI();
+inline void init();
 inline void moveCursor(int x, int y); // aka. (row & column)
 inline void setColor(CColor bg, CColor fore);
 inline void clearColor();
@@ -59,7 +60,7 @@ inline void flushBuffer() {fflush(stdout);}
 
 HANDLE _HIN,_HOUT;
 bool _ECHO;
-inline void initMCLI() {
+inline void init() {
 	_C_BACKGROUND = _C_FOREGROUND = NONE;
 	_HIN	= GetStdHandle(STD_INPUT_HANDLE);
 	_HOUT	= GetStdHandle(STD_OUTPUT_HANDLE);
@@ -106,7 +107,7 @@ inline int getKey() {return _ECHO?getchar():getch();}
 
 // ================ Implementation for Linux ================
 
-inline void initMCLI() {_C_BACKGROUND = _C_FOREGROUND = NONE;}
+inline void init() {_C_BACKGROUND = _C_FOREGROUND = NONE;}
 inline void moveCursor(int x, int y) {printf("\033[%d;%dH",x+1,y+1);flushBuffer();}
 inline void setColor(CColor bg, CColor fore) {
 	static const int BG[]={44,42,41,40,47,45,0,43};
@@ -133,5 +134,7 @@ inline int getKey() {return getchar();}
 
 #error Unsupported Operation System
 #endif
+
+};
 };
 #endif

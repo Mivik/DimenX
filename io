@@ -22,14 +22,14 @@
 #ifndef __DIMENX_IO_H_
 #define __DIMENX_IO_H_
 
-#include <string.h>
-#include <stdio.h>
+#include <cstring>
+#include <cstdio>
+#include <string>
+#include <vector>
+
 #include <unistd.h>
 #include <dirent.h>
 #include <assert.h>
-
-#include <string>
-#include <vector>
 
 #include <sys/stat.h>
 #include <linux/limits.h>

@@ -111,7 +111,7 @@ struct Network {
 		E[0]=(~input)*delta;
 		return E;
 	}
-	inline static double REFINE(double x) {return isnan(x)?0:(isinf(x)?(x>0?DBL_MAX:DBL_MIN):x);}
+	inline static double REFINE(double x) {return isnan(x)?0:(isinf(x)?(x>0?std::DBL_MAX:std::DBL_MIN):x);}
 	void refine() {for(int i=0;i<LSIZE;i++)W[i]&=REFINE;}
 	void singleGradientDescent(double rate, MAT* err) {for(int i=0;i<LSIZE;i++)W[i]-=err[i]*=rate;}
 	void momentumGradientDescent(double mov, double rate, MAT* err) {for(int i=0;i<LSIZE;i++){DD[i]*=mov;DD[i]+=err[i]*=(1-mov);err[i]=DD[i];W[i]-=err[i]*=rate;}}

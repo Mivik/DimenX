@@ -22,11 +22,10 @@
 #define __DIMENX_MATRIX_H_
 
 #include <iostream>
-#include <cassert>
-using namespace std;
 
 namespace dimenx {
 
+#define assert(a) {}
 template<typename V>
 struct Matrix {
 	using MAT = Matrix<V>;
@@ -53,8 +52,9 @@ struct Matrix {
 	MAT& operator*=(const MAT& t) {assert(N==t.N&&M==t.M);int i,j;for(i=0;i<N;i++)for(j=0;j<M;j++)a[i][j]*=t.a[i][j];return *this;}
 	MAT operator~() const {Matrix ret(M,N);int i,j;for(i=0;i<N;i++)for(j=0;j<M;j++)ret.a[j][i]=a[i][j];return ret;}
 	template<typename D=V> D sum() const {D ret=0;int i,j;for(i=0;i<N;i++)for(j=0;j<M;j++)ret+=a[i][j];return ret;}
-	friend ostream& operator<<(ostream& out, const Matrix<V>& t) {out.put('[');int i,j;for(i=0;i<t.N;i++){for(j=0,out.put('[');j<t.M;j++){out<<t.a[i][j];if(j!=t.M-1)out.put(',');}out.put(']');if(i!=t.N-1)out<<",\n";}out.put(']');return out;}
+	friend std::ostream& operator<<(std::ostream& out, const Matrix<V>& t) {out.put('[');int i,j;for(i=0;i<t.N;i++){for(j=0,out.put('[');j<t.M;j++){out<<t.a[i][j];if(j!=t.M-1)out.put(',');}out.put(']');if(i!=t.N-1)out<<",\n";}out.put(']');return out;}
 };
+#undef assert
 
 };
 #endif
