@@ -25,7 +25,7 @@
 #include <climits>
 #include <clocale>
 
-#include <mcli>
+#include <dimenx/mcli>
 
 namespace dimenx {
 namespace vlier {
@@ -42,8 +42,10 @@ inline void vvli(int *a, int len, int w=1, int h=1) {
 	h*=8;
 	int mmax=INT_MIN;
 	for (i=0;i<len;i++) if (a[i]>mmax) mmax=a[i];
+	long long top=
 	for (i=0;i<len;i++) {
 		int he=((long long)a[i]*h+(mmax>>1))/mmax;
+		if (he<=)
 	}
 }
 
