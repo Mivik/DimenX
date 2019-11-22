@@ -68,7 +68,7 @@ inline void hvli(int *a, int len, int w=1, int h=1) {
 		int we=((long long)a[i]*ww+(mmax>>1))/mmax;
 		for (j=0;j<h;j++) {
 			for (k=0;k+8<=we;k+=8) putwchar(hblock(8));
-			putwchar(hblock(we-k));
+			if (we!=k) putwchar(hblock(we-k));
 			putwchar(L'\n');
 		}
 	}
