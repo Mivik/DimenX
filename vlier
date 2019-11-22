@@ -35,17 +35,42 @@ inline void init() {
 	setlocale(LC_ALL,getenv("LANG"));
 }
 
-inline void vblock(int h) { if(!h)putwchar(L' ');else putwchar(0x2580+h); }
+inline wchar_t vblock(int h) { return 0x2580+h; }
 
 inline void vvli(int *a, int len, int w=1, int h=1) {
-	int i;
-	h*=8;
+	int i,j,k;
+	int hh=h<<3;
 	int mmax=INT_MIN;
 	for (i=0;i<len;i++) if (a[i]>mmax) mmax=a[i];
-	long long top=
+	int s[len];
+	for (i=0;i<len;i++) s[i]=((long long)a[i]*hh+(mmax>>1))/mmax;
+	for (i=h;i;i--) {
+		int ww=i<<3;
+		for (j=0;j<len;j++) {
+			wchar_t c;
+			if (s[j]>=ww) c=vblock(8);
+			else if (s[j]>ww-8) c=vblock(s[j]-ww+8);
+			else c=L' ';
+			for (k=0;k<w;k++) putwchar(c);
+		}
+		putwchar(L'\n');
+	}
+}
+
+inline wchar_t hblock(int w) { return 0x2590-w; }
+
+inline void hvli(int *a, int len, int w=1, int h=1) {
+	int i,j,k;
+	int ww=w<<3;
+	int mmax=INT_MIN;
+	for (i=0;i<len;i++) if (a[i]>mmax) mmax=a[i];
 	for (i=0;i<len;i++) {
-		int he=((long long)a[i]*h+(mmax>>1))/mmax;
-		if (he<=)
+		int we=((long long)a[i]*ww+(mmax>>1))/mmax;
+		for (j=0;j<h;j++) {
+			for (k=0;k+8<=we;k+=8) putwchar(hblock(8));
+			putwchar(hblock(we-k));
+			putwchar(L'\n');
+		}
 	}
 }
 
