@@ -51,7 +51,6 @@ inline const char *encode(const char *cinput, size_t len, char *output=NULL) {
 	*cur='\0';
 	return output;
 }
-inline const char *encode(const char *cinput, char *output=NULL) { return encode(cinput,strlen(cinput),output); }
 
 };
 };
