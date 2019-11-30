@@ -35,9 +35,9 @@ struct Matrix {
 	Matrix() {a=0;}
 	Matrix(int N, int M) {resize(N,M);}
 	Matrix(const Matrix& t) {forceSet(t);}
-	Matrix& operator=(const Matrix& t) {assert(t.a);int i,j;if(N==t.N&&M==t.M&&a){for(i=0;i<N;i++)for(j=0;j<M;j++)a[i][j]=t.a[i][j];}else this->~MAT(),forceSet(t);return *this;}
+	Matrix& operator=(const Matrix& t) {assert(t.a);int i,j;if(N==t.N&&M==t.M&&a){for(i=0;i<N;i++)for(j=0;j<M;j++)a[i][j]=t.a[i][j];}else recycle(),forceSet(t);return *this;}
 	void forceSet(const MAT& t) {assert(t.a);N=t.N;M=t.M;int i,j;a=new V*[N];*a=new V[N*M];for(i=0;i<N;i++)for(a[i]=*a+(i*M),j=0;j<M;j++)a[i][j]=t.a[i][j];}
-	void resize(int N, int M) {assert(N>0&&M>0);this->~MAT();this->N=N;this->M=M;int i,j;a=new V*[N];*a=new V[N*M];for(i=1;i<N;i++)a[i]=*a+(i*M);}
+	void resize(int N, int M) {assert(N>0&&M>0);recycle();this->N=N;this->M=M;int i,j;a=new V*[N];*a=new V[N*M];for(i=1;i<N;i++)a[i]=*a+(i*M);}
 	void recycle() {if(!a)return;delete[] *a;delete[]a;a=0;}
 	void clear() {int i,j;for(i=0;i<N;i++)for(j=0;j<M;j++)a[i][j]=0;}
 	MAT& operator+=(const MAT& t) {assert(N==t.N&&M==t.M);int i,j;for(i=0;i<N;i++)for(j=0;j<M;j++)a[i][j]+=t.a[i][j];return *this;}
