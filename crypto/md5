@@ -21,8 +21,9 @@
 #ifndef __DIMENX_CRYPTO_MD5_H_
 #define __DIMENX_CRYPTO_MD5_H_
 
-#include <dimenx/crypto/common>
 #include <cstring>
+
+#include <dimenx/crypto/common>
 
 namespace dimenx {
 namespace crypto {
@@ -71,11 +72,11 @@ namespace crypto {
 
 struct MD5 {
 private:
-	static const byte PADDING[64];
-	byte D[16];
+	static const uchar PADDING[64];
+	uchar D[16];
 	uint64 C;
 	uint32 S[4];
-	byte B[64];
+	uchar B[64];
 	bool F;
 	inline void doFinal() {
 		uint32 oldS[4];
@@ -86,7 +87,7 @@ private:
 		ind=(uint32)((C>>3)&0x3f);
 		padLen=(ind<56)?(56-ind):(120-ind);
 		update(PADDING,padLen);
-		byte *bits=(byte*)&oC;
+		uchar *bits=(uchar*)&oC;
 		update(bits,8);
 		memcpy(D,S,sizeof(S));
 		memcpy(S,oldS,sizeof(S));
@@ -94,8 +95,8 @@ private:
 	}
 public:
 	MD5() {reset();}
-	inline const char *toHexString(char *output=NULL, bool upper=false) { return Bytes2Hex(digest(),16,output,upper); }
-	inline const char *toHexString16(char *output=NULL, bool upper=false) { return Bytes2Hex(digest()+4,8,output,upper); }
+	inline const char *toHexString(char *output=NULL, bool upper=false) { return uchars2Hex(digest(),16,output,upper); }
+	inline const char *toHexString16(char *output=NULL, bool upper=false) { return uchars2Hex(digest()+4,8,output,upper); }
 	inline void reset() {
 		F=0;
 		C=0;
@@ -104,7 +105,7 @@ public:
 		S[2]=0x98badcfe;
 		S[3]=0x10325476;
 	}
-	inline void update(const byte *input, size_t len) {
+	inline void update(const uchar *input, size_t len) {
 		if (!len) return;
 		uint32 i,off,partLen;
 		F=0;
@@ -119,7 +120,7 @@ public:
 		} else i=0;
 		memcpy(B+off,input+i,len-i);
 	}
-	inline void update(const char *inputStr) { update((const byte*)inputStr,strlen(inputStr)); }
+	inline void update(const char *inputStr) { update((const uchar*)inputStr,strlen(inputStr)); }
 	inline const char *digest() {
 		if (!F) {
 			doFinal();
@@ -127,7 +128,7 @@ public:
 		}
 		return (const char*)D;
 	}
-	inline void transform(const byte input[64]) {
+	inline void transform(const uchar input[64]) {
 		uint32 a=S[0],b=S[1],c=S[2],d=S[3];
 		uint32 *x=(uint32*)input;
 
@@ -209,7 +210,7 @@ public:
 		S[3]+=d;
 	}
 };
-const byte MD5::PADDING[64]={0x80};
+const uchar MD5::PADDING[64]={0x80};
 
 };
 };

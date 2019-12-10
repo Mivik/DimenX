@@ -1,6 +1,6 @@
 // <crypto/common> -*- C++ -*-
 /*
-	crypto - Common utils for crypto
+	crypto/common - Common utils for crypto
 	Copyright (C) 2019 Mivik
 
 	This file is part of the DimenX library. This library is free
@@ -21,29 +21,49 @@
 #ifndef __DIMENX_CRYPTO_COMMON_H_
 #define __DIMENX_CRYPTO_COMMON_H_
 
+#include <cassert>
+
 namespace dimenx {
 namespace crypto {
 
-typedef unsigned char byte;
+typedef unsigned char uchar;
 typedef unsigned int uint32;
 typedef unsigned long long uint64;
 
 // Big Endian
-inline const char *Bytes2Hex(const char *input, size_t len, char *output=NULL, bool upper=false) {
+inline char *Bytes2Hex(const void *vinput, size_t len, char *output=NULL, bool upper=false) {
 #define b2h(c) (((c)>=10)?((c)-10+(upper?'A':'a')):(c+'0'))
+	if (!output) output=(char*)malloc((len<<1)|1); // for '\0'
 	char *ret=output;
-	if (!ret) ret=new char[len<<1];
-	byte ww;
+	uchar ww;
+	const char *input=(const char*)vinput;
 	const char *tar=input+len;
-	for (;input!=tar;) {
+	while (input!=tar) {
 		ww=(*input>>4)&15;
 		*ret++=b2h(ww);
 		ww=*input&15;
 		*ret++=b2h(ww);
 		++input;
 	}
-	return ret;
+	*ret='\0';
+	return output;
 #undef b2h
+}
+inline void *Hex2Bytes(const char *input, size_t len, void *voutput=NULL) {
+#define conv(c) uchar(((c)>='A'&&(c)<='Z')?((c)-'A'+10):(((c)>='a'&&c<='z')?((c)-'a'+10):((c)-'0')))
+	assert(!(len&1));
+	if (!voutput) voutput=(char*)malloc(len>>1);
+	char *output=(char*)voutput;
+	const char *tar=input+len;
+	while (input!=tar) {
+		*output=conv(*input)<<4;
+		++input;
+		*output|=conv(*input);
+		++input;
+		++output;
+	}
+	return voutput;
+#undef conv
 }
 
 };

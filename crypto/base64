@@ -1,0 +1,88 @@
+// <crypto/base64> -*- C++ -*-
+/*
+	crypto/base64 - base implementation to Base64 encoding
+	Copyright (C) 2019 Mivik
+
+	This file is part of the DimenX library. This library is free
+	software: you can redistribute it and/or modify it under the terms
+	of the GNU General Public License as published by the Free Software
+	Foundation, either version 3 of the License, or (at your option)
+	any later version.
+
+	This library is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with this library.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+#ifndef __DIMENX_BASE64_H_
+#define __DIMENX_BASE64_H_
+
+#include <cassert>
+#include <dimenx/crypto/common>
+
+namespace dimenx {
+namespace crypto {
+namespace Base64 {
+
+constexpr size_t encodedSize(size_t ori) { return (ori+2)/3*4; }
+constexpr size_t decodedSize(const char *cinput, size_t cur) { assert(!(cur&3));cinput+=cur;cur>>=2;cur*=3;if((*--cinput)=='='){--cur;if((*--cinput)=='=')--cur;}return cur; }
+inline char* encode(const void *vinput, size_t len, char *output=nullptr) {
+	static const char *TABLE="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+	const uchar *input=(const uchar*)vinput;
+	if (!output) output=(char*)malloc(encodedSize(len)+1); // for '\0'
+	uint32 chunk;
+	size_t i=0;
+	int pad;
+	char *cur=output;
+	while (i<len) {
+		chunk=((uint32)input[i++])<<16;
+		pad=0;
+		if (i==len) pad=2;
+		else {
+			chunk|=((uint32)input[i++])<<8;
+			if (i==len) pad=1;
+			else chunk|=((uint32)input[i++]);
+		}
+		*cur++=TABLE[(chunk>>18)&0x3F];
+		*cur++=TABLE[(chunk>>12)&0x3F];
+		switch (pad) {
+			case 0:*cur++=TABLE[(chunk>>6)&0x3F];*cur++=TABLE[(chunk)&0x3F];break;
+			case 1:*cur++=TABLE[(chunk>>6)&0x3F];*cur++='=';break;
+			case 2:*cur++='=';*cur++='=';break;
+		}
+	}
+	*cur='\0';
+	return output;
+}
+inline void* decode(const char *input, size_t len, void *voutput=nullptr) {
+#define conv(c) (uchar(((c)>='A'&&(c)<='Z')?((c)-'A'):(((c)>='a'&&(c)<='z')?((c)-'a'+26):((c)=='+'?62:((c)=='/'?63:((c)-'0'+52))))))
+	assert(!(len&3));
+	size_t i=0;
+	uint32 chunk=0;
+	if (!voutput) voutput=malloc(decodedSize(input,len));
+	char *ooutput=(char*)voutput;
+	char *output=(char*)voutput;
+	while (i<len) {
+		chunk=conv(*input)<<18,++input;
+		chunk=conv(*input)<<12,++input;
+		*output++=(chunk>>16)&255;
+		if (*input=='=') break;
+		chunk=conv(*input)<<6,++input;
+		*output++=(chunk>>8)&255;
+		if (*input=='=') break;
+		chunk=conv(*input),++input;
+		*output++=chunk&255;
+	}
+	return voutput;
+#undef conv
+}
+
+};
+};
+};
+
+#endif
