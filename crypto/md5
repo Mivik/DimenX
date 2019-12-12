@@ -95,8 +95,8 @@ private:
 	}
 public:
 	MD5() {reset();}
-	inline const char *toHexString(char *output=NULL, bool upper=false) { return uchars2Hex(digest(),16,output,upper); }
-	inline const char *toHexString16(char *output=NULL, bool upper=false) { return uchars2Hex(digest()+4,8,output,upper); }
+	inline const char *toHexString(char *output=NULL, bool upper=false) { return Bytes2Hex(digest(),16,output,upper); }
+	inline const char *toHexString16(char *output=NULL, bool upper=false) { return Bytes2Hex(digest()+4,8,output,upper); }
 	inline void reset() {
 		F=0;
 		C=0;
