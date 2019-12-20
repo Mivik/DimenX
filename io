@@ -87,19 +87,19 @@ public:
 	FileStream(FILE *file):file(file) {}
 	FileStream(const char *path, const char *mode) { file=fopen(path,mode); }
 	inline void reopen(const char *path, const char *mode) { freopen(path,mode,file); }
-	inline void seek(const long &offset, const int &origin) { fseek(file,offset,origin); }
-	inline void read(void *ptr, const size_t &itemSize, const size_t &itemCnt) { fread(ptr,itemSize,itemCnt,file); }
-	inline void write(const void *ptr, const size_t &itemSize, const size_t &itemCnt) { fwrite(ptr,itemSize,itemCnt,file); }
+	inline void seek(const long &offset, const int &origin) { return fseek(file,offset,origin); }
+	inline int read(void *ptr, const size_t itemSize, const size_t itemCnt) { return fread(ptr,itemSize,itemCnt,file); }
+	inline int write(const void *ptr, const size_t itemSize, const size_t itemCnt) { return fwrite(ptr,itemSize,itemCnt,file); }
 	inline long tell() { return ftell(file); }
-	inline void close() { fclose(file); }
-	inline void putchar(const char &c) { fputc(c,file); }
+	inline int close() { return fclose(file); }
+	inline int putchar(const char &c) { return fputc(c,file); }
 	inline char getchar() { return fgetc(file); }
 	inline int scanf(const char *format, ...) {
 		va_list args;
 		va_start(args,format);
 		return vfscanf(file,format,args);
 	}
-	inline void printf(const char *format, ...) {
+	inline int printf(const char *format, ...) {
 		va_list args;
 		va_start(args,format);
 		return vfprintf(file,format,args);
