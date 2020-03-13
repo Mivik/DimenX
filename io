@@ -73,7 +73,7 @@ public:
 struct File;
 struct FileFilter {
 	virtual bool operator()(const char *parent, const char *name) const {
-		int len=strlen(name);
+		size_t len = strlen(name);
 		if (len==1&&name[0]=='.') return false;
 		if (len==2&&name[0]=='.'&&name[1]=='.') return false;
 		return true;
@@ -85,24 +85,24 @@ private:
 public:
 	FileStream() {}
 	FileStream(FILE *file):file(file) {}
-	FileStream(const char *path, const char *mode) { file=fopen(path,mode); }
-	inline void reopen(const char *path, const char *mode) { freopen(path,mode,file); }
-	inline void seek(const long &offset, const int &origin) { return fseek(file,offset,origin); }
-	inline int read(void *ptr, const size_t itemSize, const size_t itemCnt) { return fread(ptr,itemSize,itemCnt,file); }
-	inline int write(const void *ptr, const size_t itemSize, const size_t itemCnt) { return fwrite(ptr,itemSize,itemCnt,file); }
+	FileStream(const char *path, const char *mode) { file=fopen(path, mode); }
+	inline void reopen(const char *path, const char *mode) { freopen(path, mode, file); }
+	inline void seek(const long &offset, const int &origin) { fseek(file, offset, origin); }
+	inline int read(void *ptr, const size_t itemSize, const size_t itemCnt) { return fread(ptr, itemSize, itemCnt, file); }
+	inline int write(const void *ptr, const size_t itemSize, const size_t itemCnt) { return fwrite(ptr, itemSize, itemCnt, file); }
 	inline long tell() { return ftell(file); }
 	inline int close() { return fclose(file); }
 	inline int putchar(const char &c) { return fputc(c,file); }
 	inline char getchar() { return fgetc(file); }
 	inline int scanf(const char *format, ...) {
 		va_list args;
-		va_start(args,format);
-		return vfscanf(file,format,args);
+		va_start(args, format);
+		return vfscanf(file, format, args);
 	}
 	inline int printf(const char *format, ...) {
 		va_list args;
-		va_start(args,format);
-		return vfprintf(file,format,args);
+		va_start(args, format);
+		return vfprintf(file, format, args);
 	}
 	inline bool eof() { return feof(file); }
 	inline int error() { return ferror(file); }
@@ -133,9 +133,9 @@ public:
 	File(const char *path) {setCPath(path);}
 	File(const File &parent, const char *name) {
 		assert(parent.isDirectory());
-		path=parent.path;
+		path = parent.path;
 		if ((*(parent.path.end()-1))!=PATH_SEPARATOR) path+=PATH_SEPARATOR;
-		path+=name;
+		path += name;
 		updatePath();
 	}
 	// ~File() {if(info)delete info;}
@@ -167,11 +167,11 @@ public:
 	inline std::string getPath() const { return path; }
 	inline const char *getCPath() const { return path.c_str(); }
 	inline void setPath(const std::string &path) {
-		this->path=path;
+		this->path = path;
 		updatePath();
 	}
 	inline void setCPath(const char *path) {
-		this->path=path;
+		this->path = path;
 		updatePath();
 	}
 	inline File getLinkedFile() const {
@@ -184,12 +184,12 @@ public:
 		return ret;
 	}
 	inline const char *getLinkedCPath() const {
-		char ret[PATH_MAX];
+		char *ret = new char[PATH_MAX];
 		if (!isLink()) {
-			ret[0]='\0';
+			ret[0] = '\0';
 			return ret;
 		}
-		readlink(path.c_str(),ret,PATH_MAX);
+		readlink(path.c_str(), ret, PATH_MAX);
 		return ret;
 	}
 	inline File getAbsoluteFile() const {
@@ -201,14 +201,14 @@ public:
 		return ret;
 	}
 	inline const char *getAbsoluteCPath() const {
-		char ret[PATH_MAX];
-		realpath(path.c_str(),ret);
+		char *ret = new char[PATH_MAX];
+		realpath(path.c_str(), ret);
 		return ret;
 	}
 	std::vector<File> listRawFiles() const {
 		std::vector<File> ret;
 		if (!isDirectory()) return ret;
-		DIR *dir=opendir(path.c_str());
+		DIR *dir = opendir(path.c_str());
 		if (!dir) return ret;
 		dirent *ent;
 		while ((ent=readdir(dir))) ret.push_back(*(new File(*this,ent->d_name)));
@@ -221,14 +221,14 @@ public:
 		DIR *dir=opendir(path.c_str());
 		if (!dir) return ret;
 		dirent *ent;
-		const char *we=path.c_str();
-		while ((ent=readdir(dir)))
+		const char *we = path.c_str();
+		while ((ent = readdir(dir)))
 			if (filter(we,ent->d_name)) ret.push_back(*(new File(*this,ent->d_name)));
 		closedir(dir);
 		return ret;
 	}
 	std::string getName() const {
-		int ind=path.length()-1;
+		int ind = path.length()-1;
 		while (ind>=0&&path[ind]!=PATH_SEPARATOR) --ind;
 		return path.substr(ind+1);
 	}
@@ -237,6 +237,7 @@ public:
 	inline bool remove() const {
 		if (isFile()) return unlink(path.c_str())==0;
 		else if (isDirectory()) return rmdir(path.c_str())==0;
+		return 0;
 	}
 #undef E
 };

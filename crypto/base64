@@ -21,18 +21,21 @@
 #ifndef __DIMENX_BASE64_H_
 #define __DIMENX_BASE64_H_
 
-#include <cassert>
 #include <dimenx/crypto/common>
+#include <cassert>
+#include <cstddef>
+#include <cstdint>
+#include <cstdlib>
 
 namespace dimenx {
 namespace crypto {
 namespace Base64 {
 
 constexpr size_t encodedSize(size_t ori) { return (ori+2)/3*4; }
-constexpr size_t decodedSize(const char *cinput, size_t cur) { assert(!(cur&3));cinput+=cur;cur>>=2;cur*=3;if((*--cinput)=='='){--cur;if((*--cinput)=='=')--cur;}return cur; }
+size_t decodedSize(const char *cinput, size_t cur) { assert(!(cur&3));cinput+=cur;cur>>=2;cur*=3;if((*--cinput)=='='){--cur;if((*--cinput)=='=')--cur;}return cur; }
 inline char* encode(const void *vinput, size_t len, char *output=nullptr) {
 	static const char *TABLE="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-	const uchar *input=(const uchar*)vinput;
+	const uchar *input=(const uint8_t*)vinput;
 	if (!output) output=(char*)malloc(encodedSize(len)+1); // for '\0'
 	uint32 chunk;
 	size_t i=0;
