@@ -87,12 +87,12 @@ public:
 	FileStream(FILE *file):file(file) {}
 	FileStream(const char *path, const char *mode) { file=fopen(path, mode); }
 	inline void reopen(const char *path, const char *mode) { freopen(path, mode, file); }
-	inline void seek(const long &offset, const int &origin) { fseek(file, offset, origin); }
+	inline void seek(long offset, int origin) { fseek(file, offset, origin); }
 	inline int read(void *ptr, const size_t itemSize, const size_t itemCnt) { return fread(ptr, itemSize, itemCnt, file); }
 	inline int write(const void *ptr, const size_t itemSize, const size_t itemCnt) { return fwrite(ptr, itemSize, itemCnt, file); }
 	inline long tell() { return ftell(file); }
 	inline int close() { return fclose(file); }
-	inline int putchar(const char &c) { return fputc(c,file); }
+	inline int putchar(char c) { return fputc(c,file); }
 	inline char getchar() { return fgetc(file); }
 	inline int scanf(const char *format, ...) {
 		va_list args;
